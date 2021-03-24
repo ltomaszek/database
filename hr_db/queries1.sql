@@ -258,7 +258,7 @@ LEFT JOIN   departments d
     USING   (department_id)
 ORDER BY    city DESC;
 
--- OR
+-- or
 SELECT      e.first_name,
             e.last_name,
             (CASE 
@@ -271,3 +271,105 @@ LEFT JOIN   departments d
 LEFT JOIN   locations l
     USING   (location_id)
 ORDER BY    l.city DESC;
+
+-- all managers
+SELECT DISTINCT
+            m.employee_id,
+            m.first_name,
+            m.last_name
+FROM        employees e
+JOIN        employees m
+        ON  e.manager_id = m.employee_id
+ORDER BY    m.employee_id;
+
+-- or
+SELECT  employee_id,
+        first_name,
+        last_name
+FROM    employees e
+WHERE EXISTS
+            (SELECT null
+             FROM   employees
+             WHERE  manager_id = e.employee_id);
+             
+-- person with smallest salary
+SELECT  employee_id,
+        first_name,
+        last_name,
+        salary
+FROM    employees
+WHERE   salary = (SELECT MIN(salary)
+                  FROM   employees);    
+    
+-- or
+SELECT  employee_id,
+        first_name,
+        last_name,
+        salary
+FROM    employees e
+WHERE NOT EXISTS
+                (SELECT null
+                 FROM   employees
+                 WHERE  e.salary > salary);
+
+-- or       
+SELECT  employee_id,
+        first_name,
+        last_name,
+        salary
+FROM    employees e
+JOIN    (SELECT MIN(salary) min_salary FROM employees) j
+    ON  e.salary = j.min_salary;
+   
+-- or 
+SELECT  employee_id,
+        first_name,
+        last_name,
+        salary
+FROM    employees e
+WHERE   e.salary <= ALL 
+                    (SELECT DISTINCT salary FROM employees);
+                    
+-- used departments
+SELECT DISTINCT 
+            department_id,
+            department_name
+FROM        employees
+JOIN        departments
+    USING   (department_id)
+ORDER BY    department_id;
+
+-- or
+SELECT  department_id,
+        department_name
+FROM    departments d
+WHERE EXISTS
+            (SELECT null
+             FROM   employees
+             WHERE  d.department_id = department_id);
+
+-- unused departments
+SELECT  department_id,
+        department_name
+FROM    departments d
+WHERE NOT EXISTS
+            (SELECT null
+             FROM   employees
+             WHERE  d.department_id = department_id);
+
+-- or
+SELECT  department_id,
+        department_name
+FROM    departments
+WHERE   department_id NOT IN
+                            (SELECT DISTINCT department_id
+                             FROM   employees
+                         WHERE  department_id IS NOT NULL);
+
+-- or
+SELECT      department_id,
+            d.department_name
+FROM        departments d
+LEFT JOIN   employees e
+    USING   (department_id)
+WHERE       e.employee_id IS null;
