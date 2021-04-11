@@ -187,14 +187,14 @@ db.users.updateMany(
     }
 )
 
-/* Remove Chris' last hobby */
+/* Remove Chris' first hobby */
 db.users.updateOne(
     {
         name: "Chris"
     },
     {
         $pop: {
-            hobbies: 1
+            hobbies: -1
         }
     }
 )
@@ -233,10 +233,50 @@ db.users.updateMany(
     },
     {
         $set: {
-            hobbies: [{
+            hobbies: [
+                {
                 title: "Running",
-                frequency: 7
-            }]
+                frequency: 7}
+            ]
         }
     }
 )
+
+/* Delete Chris */
+db.users.deleteOne({
+    name: "Chris"
+})
+
+/* Delete all users where age exists, but is null */
+db.users.deleteMany({
+    age: {
+        $exists: true,
+        $eq: null
+    }
+})
+
+/* Delete all users where age exists, but is null, or age does not exists at all */
+db.users.deleteMany({
+    age: null
+})
+
+/* Check all ages of users that are fans of cars */
+db.users.find(
+    {
+        isCarsFan: true
+    },
+    {
+        _id: 0,
+        age: 1
+    }
+)
+
+/* Delete all users with hobby: Running with frequency 7 */
+db.users.deleteMany({
+    hobbies: {
+        $elemMatch: {
+            title: "Running",
+            frequency: 7
+        }
+    }
+})
