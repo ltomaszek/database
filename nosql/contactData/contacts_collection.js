@@ -122,18 +122,35 @@ db.contacts2.explain("executionStats").find({
     hobbies: "Cars"
 })
 
-/* Create addresses index */
+/* Create addresses index in foreground (collection is locked during creation) */
 db.contacts2.createIndex({
     addresses: 1
 })
 
-/* */
+/* Create addresses index in background (collection is available during creation) */
+db.contacts2.createIndex(
+    {addresses: 1},
+    {background: true}
+)
+
+/* CALLSCAN */
 db.contacts2.explain("executionStats").find({
     "addresses.street": "Main Street"
 })
 
-/* */
+/* IXSCAN, indexName: "addresses_1" */
 db.contacts2.explain("executionStats").find({
     addresses: {street: "Main Street"}
 })
 
+/* Add another street to David */
+db.contacts2.updateOne(
+    {
+        name: "David"
+    },
+    {
+        $push: {
+            addresses: {street: "Second Street"}
+        }
+    }
+)

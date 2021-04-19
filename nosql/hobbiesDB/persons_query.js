@@ -26,7 +26,10 @@ db.createCollection("persons", {
 });
 
 /* Insert data */
-db.persons.insertOne({ _id: 1, name: "Max", hobbies: [] });
+db.persons.insertOne({ 
+  _id: 1, name: "Max", hobbies: []
+});
+
 db.persons.insertMany(
   [
     { _id: 2, name: "Eva", hobbies: ["yoga", "cars"] },
@@ -35,15 +38,18 @@ db.persons.insertMany(
   { ordered: false },
   { writeConcert: { w: 1, j: true, wtimeout: 10 } }
 );
+
 db.persons.insertOne({
   _id: 4,
   name: "Strange",
   hobbies: ["unknown hobby", "another unknown hobby"],
 });
+
 db.persons.insertOne(
   { _id: 5, name: "Alex", hobbies: ["yoga"] },
   { writeConcert: { w: 1 } }
 );
+
 db.persons.insertOne(
   { _id: 10, name: "Michi", hobbies: ["cars"] },
   { writeConcert: { w: 1, j: true, wtimeout: 10 } }

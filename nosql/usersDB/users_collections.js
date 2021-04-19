@@ -233,8 +233,7 @@ db.users.updateMany(
     },
     {
         $set: {
-            hobbies: [
-                {
+            hobbies: [{
                 title: "Running",
                 frequency: 7}
             ]
