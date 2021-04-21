@@ -152,8 +152,7 @@ db.persons.aggregate([
     {
         $group: {
             _id: "$age",
-            age_sum: {$sum: "$age"},
-            name: "$name"
+            age_sum: {$sum: "$age"}
         }
     }
 ])
@@ -286,8 +285,11 @@ db.persons.find(
     }
 )
 
-/* Different output structure */
+/* Restructure output for people with age 25 */
 db.persons.aggregate([
+    {
+        $match: {age: 25}
+    },
     {
         $project: {
             _id: 0,
@@ -299,12 +301,17 @@ db.persons.aggregate([
                 country: "$company.location.country"
             }
         }
+    },
+    {
+        $sort: {name: 1}
     }
 ])
 
 /* or */
 db.persons.find(
-    {},
+    {
+        age: 25
+    },
     {
         _id: 0,
         name: 1,
@@ -314,4 +321,196 @@ db.persons.find(
             fruit: "$favoriteFruit",
             country: "$company.location.country"
     }
+}).sort({
+    name: 1
+})
+
+/* Three youngest people sorted alphabetically */
+db.persons.aggregate([
+    {
+        $match: {
+            age: {$exists: true}
+        }
+    },
+    {
+        $sort: {
+            age: 1,
+            name: 1
+        }
+    },
+    {
+        $limit: 3
+    }
+])
+
+/* or */
+db.persons.find({
+    age: {
+        $exists: true
+    }
+}).sort({
+    age: 1, 
+    name: 1
+}).limit(3)
+
+/* Array of unique tags */
+db.persons.aggregate([
+    {
+        $unwind: "$tags"
+    },
+    {
+        $group: {_id: "$tags"}
+    },
+    {
+        $sort: {_id: 1}
+    }
+]).toArray()
+
+/* Sum of all people */
+db.persons.aggregate([
+    {
+        $group: {
+            _id: "all_people", 
+            age_sum: {$sum: "$age"}
+        }
+    }
+])
+
+/* Average age by gender */
+db.persons.aggregate([
+    {
+        $group: {
+            _id: "$gender",
+            avg_age: {$avg: "$age"}
+        }
+    }
+])
+
+/* Max female's age */
+db.persons.aggregate([
+    {
+        $match: {gender: "female"}
+    },
+    {
+        $group: {
+            _id: "females_only",
+            max_age: {$max: "$age"}
+        }
+    }
+])
+
+/* Gender information */
+db.persons.aggregate([
+    {
+        $match: {
+            gender: {$exists: true},
+            age: {$exists: true}
+        }
+    },
+    {
+        $group: {
+            _id: "$gender",
+            min_age: {$min: "$age"},
+            avg_age: {$avg: "$age"},
+            max_age: {$max: "$age"},
+            num_people: {$sum: 1}
+        }
+    }
+])
+
+/* Number of people within each age */
+db.persons.aggregate([
+    {
+        $group: {
+            _id: "$age",
+            count: {$sum: NumberInt(1)}
+        }
+    },
+    {
+        $sort: {_id: 1}
+    }
+])
+
+/* Favorite fruit by gender */
+db.persons.aggregate([
+    {
+        $group: {
+            _id: {
+                favoriteFruit: "$favoriteFruit",
+                gender: "$gender"
+            },
+            count: {$sum: NumberInt(1)}
+        }
+    },
+    {
+        $sort: {
+            "_id.gender": 1,
+            "_id.favoriteFruit": 1
+        }
+    }
+])
+
+/* Tags popularity */
+db.persons.aggregate([
+    {
+        $unwind: "$tags"
+    },
+    {
+        $group: {
+            _id: "$tags",
+            count: {$sum: NumberInt(1)}
+        }
+    },
+    {
+        $sort: {_id: 1}
+    }
+])
+
+/* Average age by country */
+db.persons.aggregate([
+    {
+        $group: {
+            _id: "$company.location.country",
+            avgAge: {$avg: "$age"}
+        }
+    }
+])
+
+/* Types of specific fields */
+db.persons.aggregate([
+    {
+        $project: {
+            name: 1,
+            eyeColorType: {$type: "$eyeColor"},
+            ageType: {$type: "$age"},
+            companyType: {$type: "$company"},
+            tagsType: {$type: "$tags"}
+        }
+    }
+])
+
+/* New collection - ageInfo */
+db.persons.aggregate([
+    {
+        $group: {
+            _id: "$age",
+            count: {$sum: NumberInt(1)}
+        }
+    },
+    {
+        $sort: {_id: 1}
+    },
+    {
+        $out: "ageInfo"
+    }
+])
+
+/* If one stage exceeds 100 MB of RAM use allowDiskUse option */
+db.persons.aggregate([
+    {
+
+    }
+],
+{
+    allowDiskUse: true
 })
