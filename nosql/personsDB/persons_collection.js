@@ -514,3 +514,29 @@ db.persons.aggregate([
 {
     allowDiskUse: true
 })
+
+/* Indexes */
+db.getCollection('persons').getIndexes()
+
+/* New index */
+db.persons.createIndex(
+    {
+        name: 1
+    },
+    {
+        background: true
+    }
+)
+
+/* Explain */
+db.persons.explain().find({
+    age: {$gt: 25}
+})
+
+/* Drop index */
+db.persons.dropIndex({
+    name: 1
+})
+
+/* Drop all indexes */
+db.persons.dropIndexes() 
